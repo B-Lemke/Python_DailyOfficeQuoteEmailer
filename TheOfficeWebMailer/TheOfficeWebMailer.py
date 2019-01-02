@@ -30,7 +30,7 @@ def getOfficeQuote():
     #If the response does nocome back
     if response.status_code != 200:
         global numberOfAttempts
-        ++numberOfAttempts
+        numberOfAttempts += 1
     else:
         #response came back, get the number of episodes
         seasonData = response.json()
@@ -43,7 +43,7 @@ def getOfficeQuote():
 
         #Retrieval failes
         if quoteResponse.status_code !=200:
-                ++numberOfAttempts
+                numberOfAttempts += 1
         else:
                 episodeData = quoteResponse.json()
                 quotes = episodeData["data"]["quotes"]
@@ -84,7 +84,7 @@ def sendEmail(quoteDict, toEmail):
         server.login(serverUsername, serverPassword)
 
         #create email
-        fromAddress = "dailyofficerquotes@gmail.com"
+        fromAddress = serverUsername
         toAddress = toEmail
         msg = MIMEMultipart()
         msg["FROM"] = fromAddress
