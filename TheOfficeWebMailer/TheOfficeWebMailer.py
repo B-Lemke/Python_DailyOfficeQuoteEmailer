@@ -7,6 +7,9 @@ import smtplib
 import json
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+import os
+import sys
+import datetime
 
 numberOfAttempts = 0
 successfulRetrieval = False
@@ -44,6 +47,7 @@ def getOfficeQuote():
         else:
                 episodeData = quoteResponse.json()
                 quotes = episodeData["data"]["quotes"]
+                episodeName = episodeData["data"]["name"]
                 randomQuote = random.choice(quotes)
 
                 #quote retrieved successfully, mark it as such
@@ -51,7 +55,7 @@ def getOfficeQuote():
                 successfulRetrieval = True
 
                 #Format quote from a list into a string
-                quoteString = ""
+                quoteString = "Enjoy this quote from Season " + str(randSeason) + " Episode " + str(randomEpisode) + ": " + episodeName +  ".\n\n\n"
                 for line in randomQuote:
                     quoteString += line + " \n "
 
@@ -59,7 +63,7 @@ def getOfficeQuote():
                 return randomQuoteDict
 
 
-def sendEmail(quoteDict):
+def sendEmail(quoteDict, toEmail):
     '''
     Function to create an email server and send out an email with the office quote 
     '''
@@ -72,7 +76,7 @@ def sendEmail(quoteDict):
         server.ehlo()
 
         #retrieveLoginInfo
-        with open('login.txt') as f:
+        with open(os.path.join(sys.path[0], 'login.txt')) as f:
             serverData = json.load(f)
         serverUsername = serverData["username"]
         serverPassword = serverData["pass"]
@@ -81,11 +85,13 @@ def sendEmail(quoteDict):
 
         #create email
         fromAddress = "dailyofficerquotes@gmail.com"
-        toAddress = "blemke4@gmail.com"
+        toAddress = toEmail
         msg = MIMEMultipart()
         msg["FROM"] = fromAddress
         msg["To"] = toAddress
-        msg["Subject"] = "Your Daily Office Quote: From Season " + str(quoteDict["Season"]) + " Episode " + str(quoteDict["Episode"])
+        
+        todaysDate = str(datetime.datetime.today().month) + "/" + str(datetime.datetime.today().day) + "/" + str(datetime.datetime.today().year)
+        msg["Subject"] = todaysDate + " - Your Daily Office Quote: From Season " + str(quoteDict["Season"]) + " Episode " + str(quoteDict["Episode"])
 
         #Attach the body of the email that's passed in as a parameter
         msg.attach(MIMEText(quoteDict["Quote"],'plain'))  
@@ -111,12 +117,20 @@ while numberOfAttempts <= 3 and successfulRetrieval == False:
 
 if successfulRetrieval:
     print("Quote Retrieved... Sending....")
-    emailSentResponse = sendEmail(dailyQuote)
-    if emailSentResponse == 1:
-            print("Quote Sent!")
-    else:
-            print("Error sending quote!!!")
+
+    #retrieve emails
+    with open(os.path.join(sys.path[0], 'emails.txt')) as emailF:
+        emailListDict = json.load(emailF)
+    emailList = emailListDict["Emails"]
+
+    #send the daily quote to each email in the email list
+    for email in emailList:
+        emailSentResponse = sendEmail(dailyQuote, email)
+        if emailSentResponse == 1:
+                print("Quote sent to " + email)
+        else:
+                print("Error sending quote to " + email)   
 else:
     print("Error retrieving quote... sending bug message")
     errorDict = {"Quote" : "Something went wrong, no quote for you", "Season": 0, "Episode": 0}
-    sendEmail(errorDict)
+    sendEmail(errorDict, "blemke4@gmail.com")
