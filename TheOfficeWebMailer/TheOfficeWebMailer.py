@@ -105,6 +105,16 @@ def sendEmail(quoteDict, toEmail):
         #email failed to send, return a failure code
         return -1
 
+def sendErrorEmail():
+    errorDict = {"Quote" : "Something went wrong, no quote sent out", "Season": 0, "Episode": 0}
+
+    #get the email to send an error message to
+    with open(os.path.join(sys.path[0], 'emails.txt')) as emailF:
+            emailListDict = json.load(emailF)
+    alertEmail = emailListDict["alertEmail"]
+    sendEmail(errorDict, alertEmail)
+    print("Error Email Sent")
+
 
 ### Execute the script
 print("Retrieving a quote...")
@@ -129,8 +139,8 @@ if successfulRetrieval:
         if emailSentResponse == 1:
                 print("Quote sent to " + email)
         else:
-                print("Error sending quote to " + email)   
+                print("Error sending quote to " + email)
+                sendErrorEmail()
 else:
     print("Error retrieving quote... sending bug message")
-    errorDict = {"Quote" : "Something went wrong, no quote for you", "Season": 0, "Episode": 0}
-    sendEmail(errorDict, "blemke4@gmail.com")
+    sendErrorEmail()
