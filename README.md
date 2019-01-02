@@ -18,6 +18,6 @@ Ensure that you replace the email username and password with the correct login i
 
 #### emails.txt
 The following is the format that should be used for the emails.txt file:
->{"Emails": ["email1@gmail.com","email2@gmail.com"]}
+>{"Emails": ["email1@gmail.com","email2@gmail.com"], "alertEmail": "alertEmail@gmail.com"}
 
-The emails in this list will each recieve a copy of the randomly selected quote. You may add or delete as many members to this list as you wish.
+The 'Emails' in this list will each recieve a copy of the randomly selected quote. You may add or delete as many members to this list as you wish. The 'alertEmail' is the email that will be sent a notification if the script fails to send emails and alerts you to check it out.
